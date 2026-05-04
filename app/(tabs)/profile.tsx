@@ -12,18 +12,10 @@ import {
 import { useApp } from "../AppContext";
 
 export default function ProfileScreen() {
-  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
   // ⭐ GLOBAL DATA
-  const { totalEmission, totalOffset, history, resetAll } = useApp();
-
-  const netEmission = Math.max(totalEmission - totalOffset, 0);
-
-  const score = Math.max(
-    100 - (netEmission / (totalEmission || 1)) * 100,
-    0
-  );
+  const { user, setUser, totalOffset, history, greenScore, resetAll } = useApp();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -35,7 +27,9 @@ export default function ProfileScreen() {
           return;
         }
 
-        setUser(JSON.parse(data));
+        if (!user) {
+          setUser(JSON.parse(data));
+        }
       } catch (e) {
         console.log("Error loading user", e);
       }
@@ -87,6 +81,7 @@ export default function ProfileScreen() {
         style: "destructive",
         onPress: async () => {
           await SecureStore.deleteItemAsync("user");
+          setUser(null);
           router.replace("/login");
         },
       },
@@ -144,7 +139,7 @@ export default function ProfileScreen() {
         >
           <Text style={{ color: "#D1FAE5" }}>Your Carbon Score</Text>
           <Text style={{ color: "#fff", fontSize: 32, fontWeight: "700" }}>
-            {score.toFixed(0)} <Text style={{ fontSize: 16 }}>/100</Text>
+            {greenScore.toFixed(0)} <Text style={{ fontSize: 16 }}>/100</Text>
           </Text>
         </View>
       </View>

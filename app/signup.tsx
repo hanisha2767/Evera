@@ -2,9 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import * as SecureStore from "expo-secure-store";
+import { useApp } from "./AppContext";
 
 export default function SignupScreen() {
   const router = useRouter();
+  const { setUser } = useApp();
 
   const [name, setName] = useState(""); // ✅ added
   const [email, setEmail] = useState("");
@@ -32,9 +35,11 @@ export default function SignupScreen() {
       const data = await response.json();
 
       if (response.ok) {
+        await SecureStore.setItemAsync("user", JSON.stringify(data.user));
+        setUser(data.user);
         setError("");
         alert("Account created successfully!");
-        router.replace("/login");
+        router.replace("/(tabs)/home");
       } else {
         setError(data.error || "Signup failed");
       }

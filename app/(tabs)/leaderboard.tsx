@@ -7,19 +7,11 @@ const screenWidth = Dimensions.get("window").width;
 
 export default function InsightsScreen() {
   // ⭐ GLOBAL DATA (no hardcoding)
-  const { totalEmission, totalOffset } = useApp();
-
-  const netEmission = Math.max(totalEmission - totalOffset, 0);
-
-  // ⭐ Green score
-  const score = Math.max(
-    100 - (netEmission ) * 0.0000005,
-    0
-  );
+  const { totalEmission, totalOffset, greenScore } = useApp();
 
   const getStatus = () => {
-    if (score > 75) return "Excellent";
-    if (score > 40) return "Good";
+    if (greenScore > 75) return "Excellent";
+    if (greenScore > 40) return "Good";
     return "Needs Improvement";
   };
 
@@ -61,7 +53,7 @@ export default function InsightsScreen() {
               height: 180,
               borderRadius: 90,
               borderWidth: 10,
-              borderColor: score > 40 ? "#16A34A" : "#EF4444",
+              borderColor: greenScore > 40 ? "#16A34A" : "#EF4444",
               justifyContent: "center",
               alignItems: "center",
             }}
@@ -70,10 +62,10 @@ export default function InsightsScreen() {
               style={{
                 fontSize: 36,
                 fontWeight: "bold",
-                color: score > 40 ? "#16A34A" : "#EF4444",
+                color: greenScore > 40 ? "#16A34A" : "#EF4444",
               }}
             >
-              {score.toFixed(1)}
+              {greenScore.toFixed(1)}
             </Text>
             <Text style={{ color: "gray" }}>/100</Text>
           </View>

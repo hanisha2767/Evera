@@ -16,37 +16,18 @@ export default function HomeScreen() {
   const {
     totalEmission,
     totalOffset,
+    netEmission,
+    greenScore,
     history,
     deleteEmission,
-    restoreEmission,
-    resetAll, // ⭐ ADD THIS
+    resetAll,
   } = useApp();
 
-  const [lastDeleted, setLastDeleted] = useState<any>(null);
-  const [lastIndex, setLastIndex] = useState<number | null>(null);
-
-  const netEmission = Math.max(totalEmission - totalOffset, 0);
-
-  const score = Math.max(
-    100 - (netEmission / (totalEmission || 1)) * 100,
-    0
-  );
-
   // ✅ DELETE
-  const handleDelete = (item: any, index: number) => {
-    setLastDeleted(item);
-    setLastIndex(index);
-    deleteEmission(index);
-  };
-
-  // ✅ UNDO
-  const handleUndo = () => {
-    if (!lastDeleted || lastIndex === null) return;
-
-    restoreEmission(lastDeleted, lastIndex);
-
-    setLastDeleted(null);
-    setLastIndex(null);
+  const handleDelete = (item: any) => {
+    if (item.id) {
+      deleteEmission(item.id);
+    }
   };
 
   // ⭐ RESET WITH CONFIRMATION
@@ -128,7 +109,7 @@ export default function HomeScreen() {
             },
             {
               title: "Green Score",
-              value: `${score.toFixed(0)}`,
+              value: `${greenScore.toFixed(0)}`,
               icon: "award",
               color: "#8B5CF6",
             },
@@ -249,7 +230,7 @@ export default function HomeScreen() {
                   {item.value.toFixed(2)} kg
                 </Text>
 
-                <TouchableOpacity onPress={() => handleDelete(item, index)}>
+                <TouchableOpacity onPress={() => handleDelete(item)}>
                   <Text style={{ color: "red", fontSize: 12 }}>
                     Delete
                   </Text>
@@ -262,31 +243,7 @@ export default function HomeScreen() {
         <View style={{ height: 20 }} />
       </ScrollView>
 
-      {/* UNDO */}
-      {lastDeleted && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 20,
-            left: 20,
-            right: 20,
-            backgroundColor: "#333",
-            padding: 15,
-            borderRadius: 12,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ color: "#fff" }}>Emission deleted</Text>
 
-          <TouchableOpacity onPress={handleUndo}>
-            <Text style={{ color: "#16A34A", fontWeight: "600" }}>
-              UNDO
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
     </View>
   );
 }

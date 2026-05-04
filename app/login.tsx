@@ -2,6 +2,8 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import * as SecureStore from "expo-secure-store";
+import { useApp } from "./AppContext";
 
 // ✅ Google Auth
 import * as Google from "expo-auth-session/providers/google";
@@ -11,6 +13,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { setUser } = useApp();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState(""); // ✅ added
@@ -45,6 +48,8 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
+        await SecureStore.setItemAsync("user", JSON.stringify(data.user));
+        setUser(data.user);
         setError("");
         alert("Login successful!");
         router.replace("/(tabs)/home");
