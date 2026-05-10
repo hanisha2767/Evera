@@ -57,7 +57,7 @@ export default function LoginScreen() {
         setError(data.error || "Login failed");
       }
     } catch (err) {
-      setError("Could not connect to server. Check your tunnel.");
+      setError("Could not connect to server. Check internet connection and .env file.");
     }
   };
 

@@ -40,10 +40,10 @@ export const AppProvider = ({ children }: any) => {
   const [user, setUser] = useState<User>(null);
   const [totalEmission, setTotalEmission] = useState(0);
   const [totalOffset, setTotalOffset] = useState(0);
+  const [greenScore, setGreenScore] = useState(100);
   const [history, setHistory] = useState<EmissionItem[]>([]);
 
   const netEmission = Math.max(totalEmission - totalOffset, 0);
-  const greenScore = Math.max(100 - (netEmission / (totalEmission || 1)) * 100, 0);
 
   const fetchUserData = async () => {
     if (!user) return;
@@ -55,6 +55,7 @@ export const AppProvider = ({ children }: any) => {
       if (response.ok) {
         setTotalEmission(data.totalEmission);
         setTotalOffset(data.totalOffset);
+        setGreenScore(data.greenScore !== undefined ? data.greenScore : 100);
         setHistory(data.history);
       }
     } catch (e) {

@@ -98,12 +98,18 @@ def get_user_data(user_id):
     total_offset = sum(o.value for o in offsets)
     net_emission = max(total_emission - total_offset, 0)
     
+    if total_emission == 0:
+        green_score = 100
+    else:
+        green_score = max(100 - (net_emission / total_emission) * 100, 0)
+    
     history = [{"id": e.id, "type": e.type, "value": e.value, "date": e.date} for e in emissions]
     
     return jsonify({
         "totalEmission": total_emission,
         "totalOffset": total_offset,
         "netEmission": net_emission,
+        "greenScore": green_score,
         "history": history
     }), 200
 
