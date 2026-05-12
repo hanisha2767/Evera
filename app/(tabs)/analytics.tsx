@@ -10,8 +10,9 @@ import {
 import { useApp } from "../AppContext";
 
 export default function AnalyticsScreen() {
-  // ⭐ UPDATED: added recordEmission
-  const { totalEmission, recordEmission } = useApp();
+  // ⭐ UPDATED: added addEmission
+  const { totalEmission, setTotalEmission, addEmission } = useApp();
+  const totalOffset = 0;
 
   const [mode, setMode] = useState<"Road" | "Rail" | "Air" | "Sea">("Road");
   const [weight, setWeight] = useState("");
@@ -46,7 +47,12 @@ export default function AnalyticsScreen() {
 
     // ⭐ RECORD LOGIC (UPDATED)
     if (isRecording) {
-      recordEmission(mode, w, d);
+
+      addEmission({
+        type: mode,
+        value: emission,
+        date: new Date().toLocaleDateString(),
+      });
     }
   };
 

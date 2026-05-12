@@ -16,18 +16,37 @@ export default function HomeScreen() {
   const {
     totalEmission,
     totalOffset,
-    netEmission,
-    greenScore,
     history,
     deleteEmission,
-    resetAll,
+    restoreEmission,
+    resetAll, // ⭐ ADD THIS
   } = useApp();
 
+  const [lastDeleted, setLastDeleted] = useState<any>(null);
+  const [lastIndex, setLastIndex] = useState<number | null>(null);
+
+  const netEmission = Math.max(totalEmission - totalOffset, 0);
+
+  const score = Math.max(
+    100 - (netEmission / (totalEmission || 1)) * 100,
+    0
+  );
+
   // ✅ DELETE
-  const handleDelete = (item: any) => {
-    if (item.id) {
-      deleteEmission(item.id);
-    }
+  const handleDelete = (item: any, index: number) => {
+    setLastDeleted(item);
+    setLastIndex(index);
+    deleteEmission(index);
+  };
+
+  // ✅ UNDO
+  const handleUndo = () => {
+    if (!lastDeleted || lastIndex === null) return;
+
+    restoreEmission(lastDeleted, lastIndex);
+
+    setLastDeleted(null);
+    setLastIndex(null);
   };
 
   // ⭐ RESET WITH CONFIRMATION
@@ -78,6 +97,92 @@ export default function HomeScreen() {
           </Text>
         </View>
 
+        {/* GREEN SCORE */}
+<View
+  style={{
+    backgroundColor: "#fff",
+    margin: 15,
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    elevation: 3,
+  }}
+>
+  <Text
+    style={{
+      fontSize: 22,
+      fontWeight: "700",
+      color: "#111827",
+    }}
+  >
+    Green Score
+  </Text>
+
+  <View
+    style={{
+      marginTop: 20,
+      width: 180,
+      height: 180,
+      borderRadius: 90,
+      borderWidth: 10,
+      borderColor: score > 40 ? "#16A34A" : "#EF4444",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <Text
+      style={{
+        fontSize: 42,
+        fontWeight: "bold",
+        color: score > 40 ? "#16A34A" : "#EF4444",
+      }}
+    >
+      {score.toFixed(1)}
+    </Text>
+
+    <Text style={{ color: "gray", fontSize: 18 }}>
+      /100
+    </Text>
+  </View>
+
+  <Text
+    style={{
+      marginTop: 15,
+      fontWeight: "700",
+      fontSize: 18,
+      color: score > 40 ? "#16A34A" : "#EF4444",
+    }}
+  >
+    {score > 75
+      ? "Excellent"
+      : score > 40
+      ? "Good"
+      : "Needs Improvement"}
+  </Text>
+
+  <View style={{ marginTop: 10 }}>
+    <Text
+      style={{
+        color: "#EF4444",
+        textAlign: "center",
+        fontSize: 16,
+      }}
+    >
+      Total: {totalEmission.toFixed(2)} kg CO₂
+    </Text>
+
+    <Text
+      style={{
+        color: "#16A34A",
+        textAlign: "center",
+        fontSize: 16,
+      }}
+    >
+      Offset: {totalOffset.toFixed(2)} kg CO₂
+    </Text>
+  </View>
+</View>
+
         {/* STATS */}
         <View
           style={{
@@ -109,7 +214,7 @@ export default function HomeScreen() {
             },
             {
               title: "Green Score",
-              value: `${greenScore.toFixed(0)}`,
+              value: `${score.toFixed(0)}`,
               icon: "award",
               color: "#8B5CF6",
             },
@@ -230,7 +335,7 @@ export default function HomeScreen() {
                   {item.value.toFixed(2)} kg
                 </Text>
 
-                <TouchableOpacity onPress={() => handleDelete(item)}>
+                <TouchableOpacity onPress={() => handleDelete(item, index)}>
                   <Text style={{ color: "red", fontSize: 12 }}>
                     Delete
                   </Text>
@@ -243,7 +348,31 @@ export default function HomeScreen() {
         <View style={{ height: 20 }} />
       </ScrollView>
 
+      {/* UNDO */}
+      {lastDeleted && (
+        <View
+          style={{
+            position: "absolute",
+            bottom: 20,
+            left: 20,
+            right: 20,
+            backgroundColor: "#333",
+            padding: 15,
+            borderRadius: 12,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ color: "#fff" }}>Emission deleted</Text>
 
+          <TouchableOpacity onPress={handleUndo}>
+            <Text style={{ color: "#16A34A", fontWeight: "600" }}>
+              UNDO
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

@@ -1,9 +1,14 @@
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import * as SecureStore from "expo-secure-store";
-import { useApp } from "./AppContext";
+import { useEffect, useState } from "react";
+import {
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 // ✅ Google Auth
 import * as Google from "expo-auth-session/providers/google";
@@ -13,10 +18,9 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { setUser } = useApp();
 
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); // ✅ added
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   // ✅ Google Auth setup
@@ -32,38 +36,46 @@ export default function LoginScreen() {
     }
   }, [response]);
 
-  // ✅ LOGIN FUNCTION (main fix)
+  // ✅ LOGIN FUNCTION
   const handleLogin = async () => {
+    let storedUser;
+
     try {
-      // Use the variable from your .env file
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/login`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Bypass-Tunnel-Reminder": "true" // This skips the warning page
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        await SecureStore.setItemAsync("user", JSON.stringify(data.user));
-        setUser(data.user);
-        setError("");
-        alert("Login successful!");
-        router.replace("/(tabs)/home");
+      if (Platform.OS === "web") {
+        storedUser = localStorage.getItem("user");
       } else {
-        setError(data.error || "Login failed");
+        storedUser = await SecureStore.getItemAsync("user");
       }
+
+      if (!storedUser) {
+        setError("No account found. Please sign up first.");
+        return;
+      }
+
+      const user = JSON.parse(storedUser);
+
+      if (email !== user.email || password !== user.password) {
+        setError("Invalid email or password");
+        return;
+      }
+
+      setError("");
+      router.replace("/(tabs)/home");
     } catch (err) {
-      setError("Could not connect to server. Check internet connection and .env file.");
+      console.log(err);
+      setError("Something went wrong");
     }
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#E9ECEF", padding: 20, justifyContent: "center" }}>
-
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#E9ECEF",
+        padding: 20,
+        justifyContent: "center",
+      }}
+    >
       {/* Logo */}
       <View style={{ alignItems: "center", marginBottom: 30 }}>
         <View
@@ -80,9 +92,16 @@ export default function LoginScreen() {
           <Ionicons name="leaf-outline" size={32} color="white" />
         </View>
 
-        <Text style={{ fontSize: 28, fontWeight: "bold", color: "#1F2937" }}>
+        <Text
+          style={{
+            fontSize: 28,
+            fontWeight: "bold",
+            color: "#1F2937",
+          }}
+        >
           Evera
         </Text>
+
         <Text style={{ color: "#6B7280", marginTop: 5 }}>
           Your journey to zero starts here.
         </Text>
@@ -119,7 +138,12 @@ export default function LoginScreen() {
             alignItems: "center",
           }}
         >
-          <Text style={{ color: "#20B486", fontWeight: "600" }}>
+          <Text
+            style={{
+              color: "#20B486",
+              fontWeight: "600",
+            }}
+          >
             Sign Up
           </Text>
         </TouchableOpacity>
@@ -135,9 +159,11 @@ export default function LoginScreen() {
           borderRadius: 12,
           padding: 12,
           marginBottom: 5,
+          backgroundColor: "white",
         }}
       >
         <Ionicons name="mail-outline" size={20} color="#6B7280" />
+
         <TextInput
           placeholder="hello@gmail.com"
           value={email}
@@ -148,9 +174,7 @@ export default function LoginScreen() {
 
       {/* Error */}
       {error ? (
-        <Text style={{ color: "red", marginBottom: 10 }}>
-          {error}
-        </Text>
+        <Text style={{ color: "red", marginBottom: 10 }}>{error}</Text>
       ) : null}
 
       {/* Password */}
@@ -158,21 +182,27 @@ export default function LoginScreen() {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: "#D1D5DB",
+          backgroundColor: "white",
+          borderWidth: 1,
+          borderColor: "#D1D5DB",
           borderRadius: 12,
           padding: 12,
           marginBottom: 10,
         }}
       >
-        <Ionicons name="lock-closed-outline" size={20} color="#6B7280" />
         <TextInput
           placeholder="Password"
           secureTextEntry
-          value={password} // ✅ added
-          onChangeText={setPassword} // ✅ added
+          value={password}
+          onChangeText={setPassword}
           style={{ marginLeft: 10, flex: 1 }}
         />
-        <Ionicons name="eye-off-outline" size={20} color="#6B7280" />
+
+        <Ionicons
+          name="eye-off-outline"
+          size={20}
+          color="#6B7280"
+        />
       </View>
 
       {/* Forgot Password */}
@@ -188,7 +218,7 @@ export default function LoginScreen() {
 
       {/* Sign In Button */}
       <TouchableOpacity
-        onPress={handleLogin} // ✅ updated
+        onPress={handleLogin}
         style={{
           backgroundColor: "#20B486",
           padding: 15,
@@ -197,25 +227,39 @@ export default function LoginScreen() {
           marginBottom: 20,
         }}
       >
-        <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
+        <Text
+          style={{
+            color: "white",
+            fontWeight: "bold",
+            fontSize: 16,
+          }}
+        >
           Sign In →
         </Text>
       </TouchableOpacity>
 
       {/* Divider */}
-      <Text style={{ textAlign: "center", color: "#6B7280", marginBottom: 15 }}>
+      <Text
+        style={{
+          textAlign: "center",
+          color: "#6B7280",
+          marginBottom: 15,
+        }}
+      >
         Or continue with
       </Text>
 
-      {/* Social Buttons */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-
-        {/* Google */}
+      {/* Google Button Centered */}
+      <View
+        style={{
+          alignItems: "center",
+        }}
+      >
         <TouchableOpacity
           disabled={!request}
           onPress={() => promptAsync()}
           style={{
-            flex: 1,
+            width: "70%",
             flexDirection: "row",
             borderWidth: 1,
             borderColor: "#D1D5DB",
@@ -223,30 +267,12 @@ export default function LoginScreen() {
             borderRadius: 12,
             justifyContent: "center",
             alignItems: "center",
-            marginRight: 10,
+            backgroundColor: "white",
           }}
         >
           <AntDesign name="google" size={18} />
           <Text style={{ marginLeft: 8 }}>Google</Text>
         </TouchableOpacity>
-
-        {/* Apple */}
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            flexDirection: "row",
-            borderWidth: 1,
-            borderColor: "#D1D5DB",
-            padding: 12,
-            borderRadius: 12,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Ionicons name="logo-apple" size={18} />
-          <Text style={{ marginLeft: 8 }}>Apple</Text>
-        </TouchableOpacity>
-
       </View>
     </View>
   );

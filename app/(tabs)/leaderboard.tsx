@@ -1,191 +1,419 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Dimensions, ScrollView, Text, View } from "react-native";
-import { BarChart, LineChart } from "react-native-chart-kit";
-import { useApp } from "../AppContext"; // ⭐ IMPORTANT
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useApp } from "../AppContext";
 
-const screenWidth = Dimensions.get("window").width;
+export default function LeaderboardScreen() {
+  const { totalOffset, history } = useApp();
 
-export default function InsightsScreen() {
-  // ⭐ GLOBAL DATA (no hardcoding)
-  const { totalEmission, totalOffset, greenScore } = useApp();
+  // ✅ Dynamic Badges
+  const badges: {
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  }[] = [];
+  if (history.length >= 1) {
+    badges.push({
+      title: "Eco Starter",
+      description: "Completed first eco activity",
+      icon: "leaf-outline",
+      color: "#16A34A",
+    });
+  }
 
-  const getStatus = () => {
-    if (greenScore > 75) return "Excellent";
-    if (greenScore > 40) return "Good";
-    return "Needs Improvement";
+  if (history.length >= 5) {
+    badges.push({
+      title: "Logistics Explorer",
+      description: "Tracked multiple shipments",
+      icon: "navigate-outline",
+      color: "#3B82F6",
+    });
+  }
+
+  if (totalOffset >= 100) {
+    badges.push({
+      title: "Offset Hero",
+      description: "Offset more than 100kg CO₂",
+      icon: "shield-checkmark-outline",
+      color: "#10B981",
+    });
+  }
+
+  // ✅ Certifications
+  const certifications = [
+    {
+      title: "Carbon Neutral Certified",
+      issuer: "Evera Academy",
+      year: "2026",
+    },
+    {
+      title: "Sustainable Logistics Expert",
+      issuer: "Evera Academy",
+      year: "2026",
+    },
+    {
+      title: "Eco Logistics Excellence",
+      issuer: "Evera Academy",
+      year: "2026",
+    },
+  ];
+
+  // ✅ REPORT DOWNLOAD
+  const generateMonthlyReport = async () => {
+    try {
+      const currentDate = new Date();
+
+      const html = `
+        <html>
+          <body style="font-family: Arial; padding: 30px;">
+            <h1 style="color: #16A34A; text-align: center;">
+              Evera Sustainability Report
+            </h1>
+
+            <h2>User Monthly Summary</h2>
+
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+              <tr>
+                <td style="border: 1px solid #ccc; padding: 12px;">
+                  <b>Date</b>
+                </td>
+
+                <td style="border: 1px solid #ccc; padding: 12px;">
+                  ${currentDate.toDateString()}
+                </td>
+              </tr>
+
+              <tr>
+                <td style="border: 1px solid #ccc; padding: 12px;">
+                  <b>Total Shipments</b>
+                </td>
+
+                <td style="border: 1px solid #ccc; padding: 12px;">
+                  ${history.length}
+                </td>
+              </tr>
+
+              <tr>
+                <td style="border: 1px solid #ccc; padding: 12px;">
+                  <b>Total Offset</b>
+                </td>
+
+                <td style="border: 1px solid #ccc; padding: 12px;">
+                  ${totalOffset.toFixed(2)} kg CO₂
+                </td>
+              </tr>
+            </table>
+
+            <h2 style="margin-top: 40px;">
+              Unlocked Badges
+            </h2>
+
+            <ul>
+              ${badges
+                .map(
+                  (badge) => `
+                    <li>
+                      <b>${badge.title}</b> - ${badge.description}
+                    </li>
+                  `
+                )
+                .join("")}
+            </ul>
+
+            <h2 style="margin-top: 40px;">
+              Certifications
+            </h2>
+
+            <ul>
+              ${certifications
+                .map(
+                  (cert) => `
+                    <li>
+                      <b>${cert.title}</b> - ${cert.issuer}
+                    </li>
+                  `
+                )
+                .join("")}
+            </ul>
+
+            <h3 style="margin-top: 40px; color: #16A34A;">
+              Keep building a greener future 🌱
+            </h3>
+          </body>
+        </html>
+      `;
+
+      const { uri } = await Print.printToFileAsync({
+        html,
+      });
+
+      await Sharing.shareAsync(uri);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: "#F3F4F6" }}>
-      
+    <ScrollView
+      style={{
+        flex: 1,
+        backgroundColor: "#F3F4F6",
+      }}
+    >
       {/* HEADER */}
-      <View style={{ backgroundColor: "#16A34A", padding: 20, paddingTop: 60 }}>
-        <Text style={{ color: "#D1FAE5", fontSize: 18 }}>Insights</Text>
-
-        <Text style={{ color: "#fff", fontSize: 26, fontWeight: "bold", marginTop: 10 }}>
-          Insights
+      <View
+        style={{
+          backgroundColor: "#16A34A",
+          padding: 20,
+          paddingTop: 60,
+          borderBottomLeftRadius: 25,
+          borderBottomRightRadius: 25,
+        }}
+      >
+        <Text
+          style={{
+            color: "#D1FAE5",
+            fontSize: 18,
+          }}
+        >
+          Leaderboard
         </Text>
 
-        <Text style={{ color: "#D1FAE5", marginTop: 5 }}>
-          Track your carbon footprint
+        <Text
+          style={{
+            color: "white",
+            fontSize: 28,
+            fontWeight: "bold",
+            marginTop: 10,
+          }}
+        >
+          Achievements 🏆
+        </Text>
+
+        <Text
+          style={{
+            color: "#D1FAE5",
+            marginTop: 5,
+          }}
+        >
+          Unlock badges and certifications
         </Text>
       </View>
 
-      <View style={{ padding: 15 }}>
-        
-        {/* GREEN SCORE */}
-        <View
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: 20,
-            padding: 20,
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ fontSize: 18, fontWeight: "600" }}>
-            Green Score
-          </Text>
+      {/* BADGES */}
+      <Text
+        style={{
+          fontSize: 24,
+          fontWeight: "700",
+          marginTop: 25,
+          marginLeft: 15,
+          color: "#111827",
+        }}
+      >
+        Badges
+      </Text>
 
+      <View
+        style={{
+          paddingHorizontal: 15,
+          marginTop: 15,
+        }}
+      >
+        {badges.length === 0 ? (
           <View
             style={{
-              marginTop: 20,
-              width: 180,
-              height: 180,
-              borderRadius: 90,
-              borderWidth: 10,
-              borderColor: greenScore > 40 ? "#16A34A" : "#EF4444",
-              justifyContent: "center",
+              backgroundColor: "white",
+              borderRadius: 20,
+              padding: 20,
               alignItems: "center",
             }}
           >
-            <Text
+            <Text style={{ color: "gray", fontSize: 16 }}>
+              No badges unlocked yet 🌱
+            </Text>
+          </View>
+        ) : (
+          badges.map((badge, index) => (
+            <View
+              key={index}
               style={{
-                fontSize: 36,
-                fontWeight: "bold",
-                color: greenScore > 40 ? "#16A34A" : "#EF4444",
+                backgroundColor: "white",
+                borderRadius: 20,
+                padding: 18,
+                marginBottom: 15,
+                flexDirection: "row",
+                alignItems: "center",
+                elevation: 3,
               }}
             >
-              {greenScore.toFixed(1)}
-            </Text>
-            <Text style={{ color: "gray" }}>/100</Text>
+              <View
+                style={{
+                  width: 65,
+                  height: 65,
+                  borderRadius: 35,
+                  backgroundColor: badge.color,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons
+                  name={badge.icon as any}
+                  size={32}
+                  color="white"
+                />
+              </View>
+
+              <View
+                style={{
+                  marginLeft: 15,
+                  flex: 1,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: "700",
+                    color: "#111827",
+                  }}
+                >
+                  {badge.title}
+                </Text>
+
+                <Text
+                  style={{
+                    color: "#6B7280",
+                    marginTop: 5,
+                  }}
+                >
+                  {badge.description}
+                </Text>
+              </View>
+            </View>
+          ))
+        )}
+      </View>
+
+      {/* CERTIFICATIONS */}
+      <Text
+        style={{
+          fontSize: 24,
+          fontWeight: "700",
+          marginTop: 10,
+          marginLeft: 15,
+          color: "#111827",
+        }}
+      >
+        Certifications
+      </Text>
+
+      <View
+        style={{
+          paddingHorizontal: 15,
+          marginTop: 15,
+        }}
+      >
+        {certifications.map((cert, index) => (
+          <View
+            key={index}
+            style={{
+              backgroundColor: "white",
+              borderRadius: 20,
+              padding: 20,
+              marginBottom: 15,
+              elevation: 3,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                  }}
+                >
+                  <MaterialIcons
+                    name="verified"
+                    size={24}
+                    color="#16A34A"
+                  />
+
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontWeight: "700",
+                      color: "#111827",
+                      marginLeft: 8,
+                      flex: 1,
+                    }}
+                  >
+                    {cert.title}
+                  </Text>
+                </View>
+
+                <Text
+                  style={{
+                    color: "#6B7280",
+                    marginTop: 8,
+                    marginLeft: 32,
+                  }}
+                >
+                  Issued by {cert.issuer}
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  backgroundColor: "#DCFCE7",
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#16A34A",
+                    fontWeight: "700",
+                  }}
+                >
+                  {cert.year}
+                </Text>
+              </View>
+            </View>
           </View>
+        ))}
+      </View>
 
-          <Text style={{ marginTop: 15, fontWeight: "600" }}>
-            {getStatus()}
-          </Text>
-
-          <View style={{ marginTop: 10 }}>
-            <Text style={{ color: "#EF4444" }}>
-              Total: {totalEmission.toFixed(2)} kg CO₂
-            </Text>
-            <Text style={{ color: "#16A34A" }}>
-              Offset: {totalOffset.toFixed(2)} kg CO₂
-            </Text>
-          </View>
-        </View>
-
-        {/* BAR CHART */}
-        <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 20 }}>
-          Emissions by Transport Mode
-        </Text>
-
-        <BarChart
-          data={{
-            labels: ["Road", "Rail", "Air", "Sea"],
-            datasets: [
-              {
-                data: [0, 0, 0, 0], // ⭐ starts at 0 (can update later)
-              },
-            ],
-          }}
-          width={screenWidth - 30}
-          height={220}
-          yAxisLabel=""
-          yAxisSuffix=" kg"
-          chartConfig={{
-            backgroundColor: "#fff",
-            backgroundGradientFrom: "#fff",
-            backgroundGradientTo: "#fff",
-            decimalPlaces: 0,
-            color: () => "#16A34A",
-            labelColor: () => "#000",
-          }}
+      {/* DOWNLOAD REPORT */}
+      <TouchableOpacity
+        onPress={generateMonthlyReport}
+        style={{
+          backgroundColor: "#16A34A",
+          marginHorizontal: 15,
+          marginTop: 10,
+          marginBottom: 30,
+          padding: 18,
+          borderRadius: 18,
+          alignItems: "center",
+        }}
+      >
+        <Text
           style={{
-            borderRadius: 16,
-            marginTop: 10,
-          }}
-        />
-
-        {/* LINE CHART */}
-        <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 20 }}>
-          Emissions Over Time
-        </Text>
-
-        <LineChart
-          data={{
-            labels: ["Jan", "Feb", "Mar"],
-            datasets: [
-              {
-                data: [0, 0, 0], // ⭐ starts at 0
-              },
-            ],
-          }}
-          width={screenWidth - 30}
-          height={220}
-          yAxisLabel=""
-          yAxisSuffix=" kg"
-          chartConfig={{
-            backgroundColor: "#fff",
-            backgroundGradientFrom: "#fff",
-            backgroundGradientTo: "#fff",
-            decimalPlaces: 0,
-            color: () => "#16A34A",
-            labelColor: () => "#000",
-          }}
-          style={{
-            borderRadius: 16,
-            marginTop: 10,
-          }}
-        />
-
-        {/* SUMMARY */}
-        <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 20 }}>
-          Summary
-        </Text>
-
-        <View
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: 16,
-            padding: 20,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: 10,
+            color: "white",
+            fontSize: 16,
+            fontWeight: "700",
           }}
         >
-          <View style={{ alignItems: "center", flex: 1 }}>
-            <MaterialCommunityIcons name="calendar" size={24} />
-            <Text style={{ fontSize: 24, fontWeight: "bold", marginTop: 5 }}>
-              0
-            </Text>
-            <Text style={{ color: "gray" }}>Total Shipments</Text>
-          </View>
-
-          <View style={{ width: 1, backgroundColor: "#E5E7EB" }} />
-
-          <View style={{ alignItems: "center", flex: 1 }}>
-            <MaterialCommunityIcons name="chart-bar" size={24} />
-            <Text style={{ fontSize: 24, fontWeight: "bold", marginTop: 5 }}>
-              0.0
-            </Text>
-            <Text style={{ color: "gray" }}>
-              Avg per Shipment (kg)
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ height: 30 }} />
-      </View>
+          Download Monthly Report
+        </Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
