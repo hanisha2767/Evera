@@ -7,10 +7,14 @@ type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
 
 export default function OffsetScreen() {
   // ⭐ GLOBAL STATE
+<<<<<<< HEAD
   const { totalEmission, totalOffset, addOffset, undoOffset } = useApp();
+=======
+  const { totalEmission, totalOffset, setTotalOffset } = useApp();
+>>>>>>> ca32cf406f6a47f9c80ff3fd38403f59e6852e21
 
   // ⭐ for undo
-  const [lastOffsetId, setLastOffsetId] = useState<number | null>(null);
+  const [lastOffset, setLastOffset] = useState<number | null>(null);
 
   const options: {
     title: string;
@@ -54,6 +58,7 @@ export default function OffsetScreen() {
     },
   ];
 
+<<<<<<< HEAD
   const handleOffset = async (value: number) => {
     const id = await addOffset(value);
     if (id) {
@@ -66,6 +71,18 @@ export default function OffsetScreen() {
     if (lastOffsetId === null) return;
     undoOffset(lastOffsetId);
     setLastOffsetId(null);
+=======
+  const handleOffset = (value: number) => {
+    setTotalOffset((prev) => prev + value);
+    setLastOffset(value);
+  };
+
+  const handleUndo = () => {
+    if (lastOffset === null) return;
+
+    setTotalOffset((prev) => Math.max(prev - lastOffset, 0));
+    setLastOffset(null);
+>>>>>>> ca32cf406f6a47f9c80ff3fd38403f59e6852e21
   };
 
   // ⭐ DERIVED VALUE (correct logic)
@@ -119,16 +136,24 @@ export default function OffsetScreen() {
         {/* UNDO BUTTON */}
         <TouchableOpacity
           onPress={handleUndo}
-          disabled={lastOffsetId === null}
+          disabled={lastOffset === null}
           style={{
+<<<<<<< HEAD
             backgroundColor: lastOffsetId !== null ? "#16A34A" : "#E5E7EB",
+=======
+            backgroundColor: lastOffset ? "#16A34A" : "#E5E7EB",
+>>>>>>> ca32cf406f6a47f9c80ff3fd38403f59e6852e21
             padding: 12,
             borderRadius: 10,
             alignItems: "center",
             marginTop: 15,
           }}
         >
+<<<<<<< HEAD
           <Text style={{ color: lastOffsetId !== null ? "#fff" : "gray", fontWeight: "600" }}>
+=======
+          <Text style={{ color: lastOffset ? "#fff" : "gray", fontWeight: "600" }}>
+>>>>>>> ca32cf406f6a47f9c80ff3fd38403f59e6852e21
             Undo Last Action
           </Text>
         </TouchableOpacity>
