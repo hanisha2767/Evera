@@ -56,8 +56,20 @@ export default function ProfileScreen() {
 
   if (!user) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading...</Text>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
+        <Text style={{ fontSize: 18, color: "gray", marginBottom: 20 }}>Loading Profile...</Text>
+        <Text style={{ textAlign: "center", color: "gray", marginBottom: 20 }}>
+          If you are stuck on this screen, your session data might be corrupted.
+        </Text>
+        <TouchableOpacity 
+          onPress={async () => {
+            await SecureStore.deleteItemAsync("user");
+            router.replace("/login");
+          }}
+          style={{ backgroundColor: "#EF4444", padding: 15, borderRadius: 10 }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Force Logout</Text>
+        </TouchableOpacity>
       </View>
     );
   }

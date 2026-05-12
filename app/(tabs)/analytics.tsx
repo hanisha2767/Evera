@@ -11,7 +11,7 @@ import { useApp } from "../AppContext";
 
 export default function AnalyticsScreen() {
   // ⭐ UPDATED: added addEmission
-  const { totalEmission, setTotalEmission, addEmission } = useApp();
+  const { totalEmission, recordEmission } = useApp();
   const totalOffset = 0;
 
   const [mode, setMode] = useState<"Road" | "Rail" | "Air" | "Sea">("Road");
@@ -47,12 +47,10 @@ export default function AnalyticsScreen() {
 
     // ⭐ RECORD LOGIC (UPDATED)
     if (isRecording) {
-
-      addEmission({
-        type: mode,
-        value: emission,
-        date: new Date().toLocaleDateString(),
-      });
+      recordEmission(mode, w, d);
+      alert("Emission recorded!");
+      setWeight("");
+      setDistance("");
     }
   };
 

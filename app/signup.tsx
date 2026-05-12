@@ -9,9 +9,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useApp } from "./AppContext";
 
 export default function SignupScreen() {
   const router = useRouter();
+  const { setUser } = useApp();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -25,41 +27,29 @@ export default function SignupScreen() {
       return;
     }
 
-    if (!email.endsWith("@gmail.com")) {
-      setError("Email must end with @gmail.com");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-
-    // ✅ save user
-    const user = {
-      name,
-      email,
-      password,
-    };
-
     try {
-      if (Platform.OS === "web") {
-        localStorage.setItem("user", JSON.stringify(user));
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/signup`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Bypass-Tunnel-Reminder": "true"
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await SecureStore.setItemAsync("user", JSON.stringify(data.user));
+        setUser(data.user);
+        setError("");
+        alert("Account created successfully!");
+        router.replace("/(tabs)/home");
       } else {
-        await SecureStore.setItemAsync(
-          "user",
-          JSON.stringify(user)
-        );
+        setError(data.error || "Signup failed");
       }
-
-      setError("");
-      alert("Account created successfully!");
-
-      // ✅ go to login
-      router.replace("/login");
     } catch (err) {
-      console.log(err);
-      setError("Something went wrong");
+      setError("Could not connect to server. Check internet connection.");
     }
   };
 

@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useApp } from "./AppContext";
 
 // ✅ Google Auth
 import * as Google from "expo-auth-session/providers/google";
@@ -18,6 +19,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { setUser } = useApp();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,32 +40,29 @@ export default function LoginScreen() {
 
   // ✅ LOGIN FUNCTION
   const handleLogin = async () => {
-    let storedUser;
-
     try {
-      if (Platform.OS === "web") {
-        storedUser = localStorage.getItem("user");
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/login`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Bypass-Tunnel-Reminder": "true"
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await SecureStore.setItemAsync("user", JSON.stringify(data.user));
+        setUser(data.user);
+        setError("");
+        alert("Login successful!");
+        router.replace("/(tabs)/home");
       } else {
-        storedUser = await SecureStore.getItemAsync("user");
+        setError(data.error || "Login failed");
       }
-
-      if (!storedUser) {
-        setError("No account found. Please sign up first.");
-        return;
-      }
-
-      const user = JSON.parse(storedUser);
-
-      if (email !== user.email || password !== user.password) {
-        setError("Invalid email or password");
-        return;
-      }
-
-      setError("");
-      router.replace("/(tabs)/home");
     } catch (err) {
-      console.log(err);
-      setError("Something went wrong");
+      setError("Could not connect to server. Check internet connection.");
     }
   };
 

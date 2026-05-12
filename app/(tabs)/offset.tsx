@@ -7,7 +7,7 @@ type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
 
 export default function OffsetScreen() {
   // ⭐ GLOBAL STATE
-  const { netEmission, totalOffset, addOffset, undoOffset } = useApp();
+  const { totalEmission, totalOffset, addOffset, undoOffset } = useApp();
 
   // ⭐ for undo
   const [lastOffsetId, setLastOffsetId] = useState<number | null>(null);
@@ -56,17 +56,20 @@ export default function OffsetScreen() {
 
   const handleOffset = async (value: number) => {
     const id = await addOffset(value);
-    if (id !== undefined) {
+    if (id) {
       setLastOffsetId(id);
+      alert("Offset successfully logged!");
     }
   };
 
-  const handleUndo = async () => {
+  const handleUndo = () => {
     if (lastOffsetId === null) return;
-
-    await undoOffset(lastOffsetId);
+    undoOffset(lastOffsetId);
     setLastOffsetId(null);
   };
+
+  // ⭐ DERIVED VALUE (correct logic)
+  const netEmission = Math.max(totalEmission - totalOffset, 0);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#F3F4F6" }}>
@@ -118,14 +121,14 @@ export default function OffsetScreen() {
           onPress={handleUndo}
           disabled={lastOffsetId === null}
           style={{
-            backgroundColor: lastOffsetId ? "#16A34A" : "#E5E7EB",
+            backgroundColor: lastOffsetId !== null ? "#16A34A" : "#E5E7EB",
             padding: 12,
             borderRadius: 10,
             alignItems: "center",
             marginTop: 15,
           }}
         >
-          <Text style={{ color: lastOffsetId ? "#fff" : "gray", fontWeight: "600" }}>
+          <Text style={{ color: lastOffsetId !== null ? "#fff" : "gray", fontWeight: "600" }}>
             Undo Last Action
           </Text>
         </TouchableOpacity>
