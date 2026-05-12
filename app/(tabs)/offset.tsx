@@ -7,10 +7,10 @@ type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
 
 export default function OffsetScreen() {
   // ⭐ GLOBAL STATE
-  const { netEmission, totalOffset, addOffset, undoOffset } = useApp();
+  const { totalEmission, totalOffset, setTotalOffset } = useApp();
 
   // ⭐ for undo
-  const [lastOffsetId, setLastOffsetId] = useState<number | null>(null);
+  const [lastOffset, setLastOffset] = useState<number | null>(null);
 
   const options: {
     title: string;
@@ -54,19 +54,20 @@ export default function OffsetScreen() {
     },
   ];
 
-  const handleOffset = async (value: number) => {
-    const id = await addOffset(value);
-    if (id !== undefined) {
-      setLastOffsetId(id);
-    }
+  const handleOffset = (value: number) => {
+    setTotalOffset((prev) => prev + value);
+    setLastOffset(value);
   };
 
-  const handleUndo = async () => {
-    if (lastOffsetId === null) return;
+  const handleUndo = () => {
+    if (lastOffset === null) return;
 
-    await undoOffset(lastOffsetId);
-    setLastOffsetId(null);
+    setTotalOffset((prev) => Math.max(prev - lastOffset, 0));
+    setLastOffset(null);
   };
+
+  // ⭐ DERIVED VALUE (correct logic)
+  const netEmission = Math.max(totalEmission - totalOffset, 0);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#F3F4F6" }}>
@@ -116,16 +117,16 @@ export default function OffsetScreen() {
         {/* UNDO BUTTON */}
         <TouchableOpacity
           onPress={handleUndo}
-          disabled={lastOffsetId === null}
+          disabled={lastOffset === null}
           style={{
-            backgroundColor: lastOffsetId ? "#16A34A" : "#E5E7EB",
+            backgroundColor: lastOffset ? "#16A34A" : "#E5E7EB",
             padding: 12,
             borderRadius: 10,
             alignItems: "center",
             marginTop: 15,
           }}
         >
-          <Text style={{ color: lastOffsetId ? "#fff" : "gray", fontWeight: "600" }}>
+          <Text style={{ color: lastOffset ? "#fff" : "gray", fontWeight: "600" }}>
             Undo Last Action
           </Text>
         </TouchableOpacity>
