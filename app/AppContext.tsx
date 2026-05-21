@@ -153,9 +153,28 @@ export const AppProvider = ({ children }: any) => {
     }
   };
 
-  const resetAll = () => {
-    console.log("Reset all not fully implemented for backend. Please delete items manually.");
+  const resetAll = async () => {
+    if (!user) return;
+    try {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/user/${user.id}/reset`, {
+        method: "DELETE",
+        headers: { "Bypass-Tunnel-Reminder": "true" }
+      });
+      if (response.ok) {
+        setTotalEmission(0);
+        setTotalOffset(0);
+        setGreenScore(100);
+        setHistory([]);
+        alert("All data reset successfully!");
+      } else {
+        alert("Failed to reset data on server");
+      }
+    } catch (e) {
+      console.log("Error resetting data:", e);
+      alert("Error connecting to server to reset data.");
+    }
   };
+
 
   return (
     <AppContext.Provider

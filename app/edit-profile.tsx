@@ -8,9 +8,11 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useApp } from "./AppContext";
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const { setUser } = useApp();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -53,35 +55,40 @@ export default function EditProfileScreen() {
     }
 
     try {
-      const data = await SecureStore.getItemAsync("user");
+      const stored = await SecureStore.getItemAsync("user");
 
-      if (!data) {
+      if (!stored) {
         setError("User not found");
         return;
       }
 
-      const user = JSON.parse(data);
+      const userObj = JSON.parse(stored);
 
-      const updatedUser = {
-        ...user,
-        name,
-        email,
-      };
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/user/${userObj.id}/profile`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Bypass-Tunnel-Reminder": "true"
+        },
+        body: JSON.stringify({ name, email }),
+      });
 
-      await SecureStore.setItemAsync(
-        "user",
-        JSON.stringify(updatedUser)
-      );
+      const data = await response.json();
 
-      setSuccess("Profile updated successfully");
+      if (response.ok) {
+        await SecureStore.setItemAsync("user", JSON.stringify(data.user));
+        setUser(data.user);
+        setSuccess("Profile updated successfully");
 
-      // optional: go back after save
-      setTimeout(() => {
-        router.back();
-      }, 1000);
-
+        // go back after save
+        setTimeout(() => {
+          router.back();
+        }, 1000);
+      } else {
+        setError(data.error || "Profile update failed");
+      }
     } catch (e) {
-      setError("Something went wrong");
+      setError("Could not connect to server. Check internet connection.");
     }
   };
 

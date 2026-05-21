@@ -46,31 +46,29 @@ export default function ChangePasswordScreen() {
 
       const user = JSON.parse(storedUser);
 
-      // 🔴 Check current password
-      if (user.password !== currentPassword) {
-        setError("Current password is incorrect");
-        return;
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/user/${user.id}/change-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Bypass-Tunnel-Reminder": "true"
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess("Password updated successfully");
+
+        // clear fields
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        setError(data.error || "Failed to update password");
       }
-
-      // ✅ Update password
-      const updatedUser = {
-        ...user,
-        password: newPassword,
-      };
-
-      await SecureStore.setItemAsync(
-        "user",
-        JSON.stringify(updatedUser)
-      );
-
-      setSuccess("Password updated successfully");
-
-      // clear fields
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
     } catch (err) {
-      setError("Something went wrong");
+      setError("Could not connect to server. Check internet connection.");
     }
   };
 

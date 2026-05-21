@@ -24,8 +24,6 @@ export default function HomeScreen() {
 
   const netEmission = Math.max(totalEmission - totalOffset, 0);
 
-  const netEmission = Math.max(totalEmission - totalOffset, 0);
-
   // ✅ DELETE
   const handleDelete = (item: any) => {
     if (item.id) {

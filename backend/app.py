@@ -179,6 +179,57 @@ def delete_offset(user_id, offset_id):
     db.session.commit()
     return jsonify({"message": "Offset deleted"}), 200
 
+@app.route('/api/user/<int:user_id>/profile', methods=['POST'])
+def update_profile(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+    name = data.get('name')
+    email = data.get('email')
+    
+    if not name or not email:
+        return jsonify({"error": "Name and email are required"}), 400
+        
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user and existing_user.id != user.id:
+        return jsonify({"error": "Email is already in use by another account"}), 400
+        
+    user.name = name
+    user.email = email
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Profile updated successfully",
+        "user": {"id": user.id, "name": user.name, "email": user.email}
+    }), 200
+
+@app.route('/api/user/<int:user_id>/change-password', methods=['POST'])
+def change_password(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+    current_password = data.get('currentPassword')
+    new_password = data.get('newPassword')
+    
+    if not current_password or not new_password:
+        return jsonify({"error": "Current password and new password are required"}), 400
+        
+    if not check_password_hash(user.password, current_password):
+        return jsonify({"error": "Current password is incorrect"}), 400
+        
+    user.password = generate_password_hash(new_password, method='pbkdf2:sha256')
+    db.session.commit()
+    
+    return jsonify({"message": "Password updated successfully"}), 200
+
+@app.route('/api/user/<int:user_id>/reset', methods=['DELETE'])
+def reset_data(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    Emission.query.filter_by(user_id=user_id).delete()
+    Offset.query.filter_by(user_id=user_id).delete()
+    db.session.commit()
+    
+    return jsonify({"message": "All emissions and offsets deleted successfully"}), 200
+
 if __name__ == '__main__':
     # host='0.0.0.0' makes it visible to your phone on the Wi-Fi
     app.run(host='0.0.0.0', port=5000, debug=True)
